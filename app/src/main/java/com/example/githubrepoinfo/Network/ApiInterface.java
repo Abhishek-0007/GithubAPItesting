@@ -12,8 +12,8 @@ import retrofit2.http.Path;
 public interface ApiInterface {
 
 
-    @GET("users/Abhishek-0007/repos")
-    Call<List<GetRepo>> getRepos();
+    @GET("users/{userName}/repos")
+    Call<List<GetRepo>> getRepos(@Path(value = "userName", encoded = true) String userName);
 
 
     @GET("/repos/{owner}/{repo}/issues")

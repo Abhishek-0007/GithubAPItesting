@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private List<GetIssues> issuesList;
     ApiInterface apiInterface;
     RecyclerView repoRecycler;
-    ImageView imageView;
+    ImageView imageView, back;
     ShimmerFrameLayout mFrameLayout4;
 
     @Override
@@ -50,24 +50,25 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getRepoList();
+        Intent intent = getIntent();
+        String user = intent.getStringExtra("userName");
+        getRepoList(user);
 
         imageView = findViewById(R.id.profile);
         mFrameLayout4 = findViewById(R.id.shimmerLayout4);
 
-
+        back = findViewById(R.id.backq);
         repoRecycler = findViewById(R.id.reposRecycler);
         repoRecycler.setHasFixedSize(true);
         repoRecycler.addItemDecoration(new MiddleDividerItemDecoration(MainActivity.this, MiddleDividerItemDecoration.ALL));
         repoRecycler.setLayoutManager(new GridLayoutManager(MainActivity.this, 3));
 
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        getRepoList();
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @Override
@@ -81,14 +82,15 @@ public class MainActivity extends AppCompatActivity {
         mFrameLayout4.stopShimmer();
     }
 
-    public void getRepoList() {
+    public void getRepoList(String userName) {
         apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
-        Call<List<GetRepo>> call = apiInterface.getRepos();
+        Call<List<GetRepo>> call = apiInterface.getRepos(userName);
         call.enqueue(new Callback<List<GetRepo>>() {
             @Override
             public void onResponse(Call<List<GetRepo>> call, Response<List<GetRepo>> response) {
                 mFrameLayout4.startShimmer();
                 Log.d("@@REsponsee: No res", response.body().toString());
+                Log.d("@@REsponsee: No res", response.message().toString());
                 list = response.body();
 
                 Glide.with(MainActivity.this).load(list.get(0).getOwner().getAvatarUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).into(imageView);
@@ -113,23 +115,8 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("@@REsponsee: ",list.get(position).getName() );
                         Log.d("@@REsponsee: ",list.get(position).getHtmlUrl() );
 
-
-
-
-                        startActivity(intent);
-//                        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create(); //Read Update
-//                        alertDialog.setTitle(list.get(position).getName());
-//                        alertDialog.setMessage("Number of issues: "+list.get(position).getOpenIssuesCount()+ "\nSize: "+list.get(position).getSize()+" KB" + "\nForks: "+list.get(position).getForks()+ "\nVisibility: "+list.get(position).getVisibility());
-//
-//                        alertDialog.setButton("View More Issues..", new DialogInterface.OnClickListener() {
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                 getIssues(list.get(position).getOwner().getLogin(), list.get(position).getName());
-//
-//                            }
-//                        });
-//
-//                        alertDialog.show();  //<-- See This!
-                    }
+             startActivity(intent);
+                     }
 
                     @Override
                     public void onLongItemClick(View view, int position) {
@@ -144,26 +131,5 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("@@REsponsee: No res", t.getLocalizedMessage());
             }
         });
-    }
-
-    public void getIssues(String userID, String repoName)
-    {
-        apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
-        Call<List<GetIssues>> call = apiInterface.getIssues(userID, repoName);
-        call.enqueue(new Callback<List<GetIssues>>() {
-            @Override
-            public void onResponse(Call<List<GetIssues>> call, Response<List<GetIssues>> response) {
-                issuesList = response.body();
-                Log.d("@@REsponsee: No res",issuesList.toArray().toString());
-
-            }
-
-            @Override
-            public void onFailure(Call<List<GetIssues>> call, Throwable t) {
-                Log.d("@@REsponsee: No res", t.getLocalizedMessage());
-
-            }
-        });
-
     }
 }
